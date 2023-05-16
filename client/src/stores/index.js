@@ -1,12 +1,13 @@
-import { defineStore } from "pinia";
-import axios from "axios";
+//import { defineStore } from "pinia";
+//import axios from "axios";
 import { initializeApp } from "firebase/app";
 import {
   getFirestore,
   collection,
   onSnapshot,
+  querySnapshot,
+  getDocs
 } from "firebase/firestore";
-import Swal from 'sweetalert2';
 
 // isikan firebaseConfig disini
 
@@ -24,3 +25,5 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app)
+
+export {db};
