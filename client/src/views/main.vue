@@ -32,9 +32,18 @@
         <li v-for="{text, id} in listTransc" :key="id">
           <p>{{ text }}</p>
           <button @click="deleteData(id)"> delete script </button>
-          <button @click="runQuery(text)">Cek</button>
+          <button @click="runQuery(text)"> Cek </button>
+          <button @click="getData(text)"> cek obat </button>
         </li>
       </ul>
+    </div>
+    <div>
+      <div v-for="med in medicine" :key="med.external_id" class="p-4 shadow-md border-gray-200 border-[1px]">
+        <p>{{ med.name }}</p>
+        <img :src="med.image_url" :alt="med.name" class="w-40 mx-auto" />
+        <p>Range Harga: Rp.{{ med.min_price }} - Rp.{{ med.base_price }}</p>
+        <button @click="getMedicineDetail(med.slug)">Details</button>
+      </div>
     </div>
   </div>
 </template>
@@ -54,6 +63,7 @@ import {
   updateDoc
 } from "firebase/firestore";
 import fetch from "node-fetch"
+import axios from "axios"
 
 export default {
   data() {
@@ -65,16 +75,28 @@ export default {
       endTrancs: "",
       recognition: null,
       listTransc: [],
+      medicine:"",
+      diagnoze: null,
+      savedDiagnoze: [],
+      medicine: []
     };
   },
   methods: {
-    checkTextarea() {
-      var textarea = document.getElementById("transc");
-      if (textarea.value.trim() === "") {
-        console.log("Textarea is empty");
-      } else {
-        console.log("Textarea is not empty");
+    async getData(query) {
+      try {
+        console.log(query);
+        const response = await axios.get('http://localhost:5000/run-query', {
+          params: {
+            query: query
+          }
+        });
+        const {api} = response.data.result;
+        this.medicine = {api};
+      } catch (error) {
+        console.log("disini eror");
+        console.error(error);
       }
+      
     },
     async AddData(){
       try {

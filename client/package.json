@@ -9,6 +9,7 @@
   "dependencies": {
     "@babel/core": "^7.21.8",
     "@babel/preset-env": "^7.21.5",
+    "axios": "^1.4.0",
     "core-js": "^3.8.3",
     "firebase": "^9.19.1",
     "node-fetch": "^2.6.11",
