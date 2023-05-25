@@ -32,8 +32,8 @@
         <li v-for="{text, id} in listTransc" :key="id">
           <p>{{ text }}</p>
           <button @click="deleteData(id)"> delete script </button>
-          <button @click="runQuery(text)"> Cek </button>
-          <button @click="getData(text)"> cek obat </button>
+          <button @click="getKeyword(text)"> Cek </button>
+          <button @click="getMed(text)"> cek obat </button>
         </li>
       </ul>
     </div>
@@ -42,7 +42,7 @@
         <p>{{ med.name }}</p>
         <img :src="med.image_url" :alt="med.name" class="w-40 mx-auto" />
         <p>Range Harga: Rp.{{ med.min_price }} - Rp.{{ med.base_price }}</p>
-        <button @click="getMedicineDetail(med.slug)">Details</button>
+        <button @click="detailMed(med.slug)">Details</button>
       </div>
     </div>
   </div>
@@ -64,6 +64,8 @@ import {
 } from "firebase/firestore";
 import fetch from "node-fetch"
 import axios from "axios"
+import {getData, getMedicineDetail} from "../components/medicine.js"
+import {runQuery} from "../components/keyword.js"
 
 export default {
   data() {
@@ -82,21 +84,25 @@ export default {
     };
   },
   methods: {
-    async getData(query) {
+    async getMed(query){
       try {
         console.log(query);
-        const response = await axios.get('http://localhost:5000/run-query', {
-          params: {
-            query: query
-          }
-        });
-        const {api} = response.data.result;
-        this.medicine = {api};
-      } catch (error) {
+        const api = await getData(query);
+        console.log(api);
+        this.medicine = api;
+      }
+      catch (error) {
         console.log("disini eror");
         console.error(error);
       }
-      
+    },
+    async detailMed(slug){
+      try {
+        await getMedicineDetail(slug);
+      } 
+      catch (error) {
+        console.error(error);
+      }
     },
     async AddData(){
       try {
@@ -138,25 +144,13 @@ export default {
       }
       this.loadData();
     },
-    async runQuery(text) {
-      try {
-        const response = await fetch(
-          "https://api-inference.huggingface.co/models/abid/indonesia-bioner",
-          {
-            headers: {
-              Authorization: "Bearer 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",
-            },
-            method: "POST",
-            body: JSON.stringify({
-              "inputs": text,
-            }),
-          }
-        );
-        const result = await response.json();
-        console.log(JSON.stringify(result));
-      } 
-      catch (error) {
-        console.error(error);
+    async getKeyword(text){
+      try{
+        const keyword = await runQuery(text);
+        console.log(keyword);
+      }
+      catch(err){
+        console.error(err);
       }
     },
     startRecognition() {
@@ -171,8 +165,6 @@ export default {
       this.transcript = "";
     },
     clearful(){
-      // let textarea = document.getElementById('transc');
-      // textarea.value = "";
       this.fullTransc = "";
     },
     stopRecognition() {

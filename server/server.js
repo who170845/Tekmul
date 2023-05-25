@@ -13,14 +13,14 @@ app.get('/', async (req, res) => {
     res.send("hello world")
 });
 
-app.get('/run-query', async (req, res) => {
+app.get('/medicine/search-product/', async (req, res) => {
   const { query } = req.query; 
   // console.log({query});
   try {
     const response = await axios.get(`https://magneto.api.halodoc.com/api/v1/buy-medicine/products/search/${query}`);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.json(response.data);
-    console.log(response.data);
+    // res.send(response.data);
   } catch (error) {
     console.log("eroorrororor");
     console.error(error);
@@ -28,7 +28,7 @@ app.get('/run-query', async (req, res) => {
   }
 });
 
-app.get('/api/buy-medicine/products/details', async (req, res) => {
+app.get('/medicine/detail-product/', async (req, res) => {
   const { query } = req.query;
 
   try {
