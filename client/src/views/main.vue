@@ -1,6 +1,9 @@
 <template>
   <div>
     <div>
+        <div class="button">
+
+        </div>
         <button @click="startRecognition" :disabled="isListening">
         Start
         </button> || 
@@ -27,18 +30,32 @@
       
     </div>
     <div>
-      <textarea name="result" id="" cols="30" rows="10" disabled>{{  }}</textarea>
+      <textarea v-model="endTransc"></textarea>
+      <p>
+       end transc {{endTransc}}
+      </p>
       <ul>
         <li v-for="{text, id} in listTransc" :key="id">
           <p>{{ text }}</p>
-          <button @click="deleteData(id)"> delete script </button>
-          <button @click="getKeyword(text)"> Cek </button>
+          <button @click="deleteData(id)"> delete script </button> ||
+          <button @click="getKeyword(text)"> Cek </button> ||
           <button @click="getMed(text)"> cek obat </button>
         </li>
       </ul>
     </div>
     <div>
-      <div v-for="med in medicine" :key="med.external_id" class="p-4 shadow-md border-gray-200 border-[1px]">
+      <label for="sort">sort by</label>
+      <select v-model="category">
+        <option value="byPrice">Harga</option>
+        <option value="byName">Nama</option>
+        <!-- <option value=""></option> -->
+      </select>
+      <p>
+        category sekarang : {{this.category}}
+      </p>
+    </div>
+    <div>
+      <div v-for="med in sortCat" :key="med.external_id" class="p-4 shadow-md border-gray-200 border-[1px]">
         <p>{{ med.name }}</p>
         <img :src="med.image_url" :alt="med.name" class="w-40 mx-auto" />
         <p>Range Harga: Rp.{{ med.min_price }} - Rp.{{ med.base_price }}</p>
@@ -62,8 +79,6 @@ import {
   deleteDoc,
   updateDoc
 } from "firebase/firestore";
-import fetch from "node-fetch"
-import axios from "axios"
 import {getData, getMedicineDetail} from "../components/medicine.js"
 import {runQuery} from "../components/keyword.js"
 
@@ -74,14 +89,15 @@ export default {
       transcript: "",
       currTransc: "",
       fullTransc: "",
-      endTrancs: "",
+      endTransc: "",
       recognition: null,
       listTransc: [],
       medicine:"",
       diagnoze: null,
       savedDiagnoze: [],
-      medicine: []
-    };
+      medicine: [],
+      category: "",
+    };  
   },
   methods: {
     async getMed(query){
@@ -104,12 +120,21 @@ export default {
         console.error(error);
       }
     },
+    async getKeyword(text){
+      try{
+        const keyword = await runQuery(text);
+        console.log(keyword);
+      }
+      catch(err){
+        console.error(err);
+      }
+    },
     async AddData(){
       try {
-        this.endTrancs = this.fullTransc + this.currTransc;
+        this.endTransc = this.fullTransc + this.currTransc;
         const docVal = await addDoc(collection(db, "transkrip"),{
           //isi : document.getElementById("transc"),
-          text : this.endTrancs
+          text : this.endTransc
         });
         const docUpd = doc(db, "transkrip", docVal.id);
         await updateDoc(docUpd, {id: docVal.id});
@@ -143,15 +168,6 @@ export default {
         console.log("data gagal dihapus", err.massage)
       }
       this.loadData();
-    },
-    async getKeyword(text){
-      try{
-        const keyword = await runQuery(text);
-        console.log(keyword);
-      }
-      catch(err){
-        console.error(err);
-      }
     },
     startRecognition() {
       var textarea = document.getElementById("transc");
@@ -201,14 +217,25 @@ export default {
     // this.recognition.start(); // memulai kembali proses pengenalan suara
     this.isListening = false;
   };
-
     this.recognition.onerror = (event) => {
       console.log("Error occurred in recognition: " + event.error);
       this.isListening = false;
     };
+
     this.loadData();
   },
-    
-  
-};
+  computed: {
+    sortCat(){
+      if(this.category === "byPrice"){
+        return this.medicine.sort((a, b) => a.min_price - b.min_price)
+      }
+      else if(this.category === "byName"){
+        return this.medicine.sort((a, b) => a.name.localeCompare(b.name));
+      }
+      else{
+        return this.medicine
+      }
+    }
+  }
+}
 </script>
