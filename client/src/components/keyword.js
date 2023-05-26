@@ -15,7 +15,10 @@ async function runQuery(text) {
         }
       );
       const result = await response.json();
+      //return result;
       console.log(JSON.stringify(result));
+      console.log(result);
+      return result
     } 
     catch (error) {
       console.error(error);

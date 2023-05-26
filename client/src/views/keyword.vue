@@ -20,7 +20,7 @@
     <br>
     <div>   
       <textarea name="result" id="transc" cols="20" rows="10" disabled>{{ transcript }}</textarea> ~~
-      <textarea name="full" id="fulltransc" cols="20" rows="10" v-model="this.fullTransc">{{ this.fullTransc }}{{this.transcript}} </textarea>
+      <textarea name="full" id="fulltransc" cols="20" rows="10" disabled>{{ this.fullTransc }}{{this.transcript}} </textarea>
       <br>
 
       <button @click="clearful">Clear</button> || 
@@ -53,6 +53,15 @@
       <p>
         category sekarang : {{this.category}}
       </p>
+    </div>
+    <div>
+        <div v-for="kata in katakunci" :key="kata.word">   
+            <div v-if="kata.entity_group === 'DISO'">penyakit : {{kata.word}} </div>
+            <div v-else>
+                anatomi : {{kata.word}} 
+            </div>
+                <button @click="getMed(kata.word)"> cari obat </button>
+        </div>
     </div>
     <div>
       <div v-for="med in sortCat" :key="med.external_id" class="p-4 shadow-md border-gray-200 border-[1px]">
@@ -97,6 +106,7 @@ export default {
       savedDiagnoze: [],
       medicine: [],
       category: null,
+      katakunci: [],
     };  
   },
   methods: {
@@ -123,7 +133,8 @@ export default {
     async getKeyword(text){
       try{
         const keyword = await runQuery(text);
-        console.log(keyword);
+        //console.log(keyword);
+        this.katakunci = keyword;
       }
       catch(err){
         console.error(err);
