@@ -13,8 +13,11 @@ async function getData(query) {
     //   this.medicine = api;
       return api
     } catch (error) {
-      console.log("disini eror");
-      console.error(error);
+      //console.log("disini eror");
+      //console.error(error);
+      if (error.response && error.response.status === 404) {
+        throw new Error("Item not found");
+      }
       throw error;
     }
   } 

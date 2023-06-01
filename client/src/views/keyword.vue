@@ -30,10 +30,7 @@
       
     </div>
     <div>
-      <textarea v-model="endTransc"></textarea>
-      <p>
-       end transc {{endTransc}}
-      </p>
+      <textarea v-model="this.fullTransc"></textarea>
       <ul>
         <li v-for="{text, id} in listTransc" :key="id">
           <p>{{ text }}</p>
@@ -143,11 +140,11 @@ export default {
     async AddData(){
       try {
         this.endTransc = this.fullTransc + this.currTransc;
-        const docVal = await addDoc(collection(db, "transkrip"),{
+        const docVal = await addDoc(collection(db, "keyword"),{
           //isi : document.getElementById("transc"),
           text : this.endTransc
         });
-        const docUpd = doc(db, "transkrip", docVal.id);
+        const docUpd = doc(db, "keyword", docVal.id);
         await updateDoc(docUpd, {id: docVal.id});
         console.log("script berhasil ditambahkan", docVal.id);
       }
@@ -158,7 +155,7 @@ export default {
     },
     async loadData(){
       try {
-        const querySnapshot = await getDocs(collection(db, "transkrip"));
+        const querySnapshot = await getDocs(collection(db, "keyword"));
         this.listTransc = [];
         querySnapshot.forEach((doc) =>{
           console.log(doc.data());
@@ -172,7 +169,7 @@ export default {
     },
     async deleteData(id){
       try {
-        await deleteDoc(doc (db, "transkrip", id));
+        await deleteDoc(doc (db, "keyword", id));
         console.log("id :", id, "berhasil dihapus");
       }
       catch(err) {

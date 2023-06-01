@@ -15,18 +15,21 @@ app.get('/', async (req, res) => {
 
 app.get('/medicine/search-product/', async (req, res) => {
   const { query } = req.query; 
-  // console.log({query});
   try {
     const response = await axios.get(`https://magneto.api.halodoc.com/api/v1/buy-medicine/products/search/${query}`);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.json(response.data);
-    // res.send(response.data);
   } catch (error) {
-    console.log("eroorrororor");
     console.error(error);
-    res.status(500).json({ message: 'Server Error' });
+    if (error.response && error.response.status === 404) {
+      // Item tidak ditemukan, mengembalikan kode 404
+      res.status(404).json({ message: 'Item not found' });
+    } else {
+      res.status(500).json({ message: 'Server Error' });
+    }
   }
 });
+
 
 app.get('/medicine/detail-product/', async (req, res) => {
   const { query } = req.query;

@@ -2,7 +2,7 @@
   <div>
     <div>
         <div class="button">
-
+          <button @click="getLocation()"> tentukan kordinat </button>
         </div>
         <button @click="startRecognition" :disabled="isListening">
         Start
@@ -31,14 +31,10 @@
     </div>
     <div>
       <textarea v-model="endTransc"></textarea>
-      <p>
-       end transc {{endTransc}}
-      </p>
       <ul>
         <li v-for="{text, id} in listTransc" :key="id">
           <p>{{ text }}</p>
           <button @click="deleteData(id)"> delete script </button> ||
-          <button @click="getKeyword(text)"> Cek </button> ||
           <button @click="getMed(text)"> cek obat </button>
         </li>
       </ul>
@@ -47,18 +43,24 @@
       <label for="sort">sort by</label>
       <select v-model="category" :disabled="medicine.length === 0">
         <option value="" disabled hidden>Pilih</option>
-        <option value="byPrice">Harga</option>
-        <option value="byName">Nama</option>
+        <option value="byPrice"> Harga </option>
+        <option value="byName"> Nama </option>
+        <option value="byDistance"> Jarak </option>
+        <option value="byRating"> Rating </option>
       </select>
       <p>
         category sekarang : {{this.category}}
       </p>
     </div>
+    
     <div>
       <div v-for="med in sortCat" :key="med.external_id" class="p-4 shadow-md border-gray-200 border-[1px]">
         <p>{{ med.name }}</p>
         <img :src="med.image_url" :alt="med.name" class="w-40 mx-auto" />
-        <p>Range Harga: Rp.{{ med.min_price }} - Rp.{{ med.base_price }}</p>
+        <p>Range Harga: Rp.{{ med.min_price.toLocaleString() }} - Rp.{{ med.base_price.toLocaleString() }}</p> <br>
+        <p> Nama Apotek {{med.nama_apotik}} </p>
+        <p>Rating: {{med.rating}} ({{med.total_rater}}) </p> <br>
+        <p> Jarak {{med.distance}}M </p> 
         <button @click="detailMed(med.slug)">Details</button>
       </div>
     </div>
@@ -81,6 +83,9 @@ import {
 } from "firebase/firestore";
 import {getData, getMedicineDetail} from "../components/medicine.js"
 import {runQuery} from "../components/keyword.js"
+import data from "../components/apotek.js"
+import {countDistance, getCoordinat} from "../components/location.js"
+//import { getDistance } from 'geolib';
 
 export default {
   data() {
@@ -96,20 +101,82 @@ export default {
       diagnoze: null,
       savedDiagnoze: [],
       medicine: [],
+      medloc: [],
+      medDistance: [],
       category: null,
+      latitude: null,
+      longitude: null,
+      distance: null,
     };  
   },
   methods: {
-    async getMed(query){
+    async calculateDistance(latDest, longDest) {
       try {
-        console.log(query);
-        const api = await getData(query);
-        console.log(api);
-        this.medicine = api;
+        const dist = await countDistance(this.latitude, this.longitude, latDest, longDest);
+        console.log(dist);
+        return dist;
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    async getLocation(){
+      try{
+        const {latitude, longitude} = await getCoordinat()
+        //console.log(latitude, longitude)
+        this.latitude = latitude
+        this.longitude = longitude
+        console.log(this.latitude, this.longitude)
+      }
+      catch (error){
+        console.error(error)
+      }
+    },
+    async addLocation(){
+      try{
+        const med_loc = this.medicine.map(function(item, index){
+          return {
+            ...item, ...data[index % data.length]
+          }
+        })
+        console.log(med_loc)
+        this.medloc = med_loc
       }
       catch (error) {
-        console.log("disini eror");
         console.error(error);
+      }
+    },
+    async addDistance(){
+      try {
+        const med_dist = await Promise.all(this.medloc.map(async (item) => {
+          return {
+            ...item,
+            distance: await this.calculateDistance(item.latitude, item.longitude)
+          }
+        }))
+        this.medDistance = med_dist
+        console.log(med_dist)
+      }
+      catch(error) {
+        console.error(error)
+      }
+    },
+    async getMed(query){
+      try {
+        if (this.latitude != null && this.longitude != null){
+          console.log(query);
+          const api = await getData(query);
+          console.log(api);
+          this.medicine = api;
+          this.addLocation();
+          this.addDistance();
+        }
+        else{
+          window.alert("tentukan kordinat dulu dekkk!!")
+        }
+      }
+      catch (error) {
+        console.log("obat tidak tersedia");
+        //console.error(error);
       }
     },
     async detailMed(slug){
@@ -227,13 +294,24 @@ export default {
   computed: {
     sortCat(){
       if(this.category === "byPrice"){
-        return this.medicine.sort((a, b) => a.min_price - b.min_price)
+        return this.medDistance.sort((a, b) => a.min_price - b.min_price)
       }
       else if(this.category === "byName"){
-        return this.medicine.sort((a, b) => a.name.localeCompare(b.name));
+        return this.medDistance.sort((a, b) => a.name.localeCompare(b.name));
+      }
+      else if(this.category === "byDistance"){
+        return this.medDistance.sort((a,b) => a.distance - b.distance)
+      }
+      else if(this.category === "byRating"){
+        return this.medDistance.sort((a,b) => {
+          if (a.rating === b.rating) {
+            return b.total_rater - a.total_rater
+          }
+          return b.rating - a.rating
+        })
       }
       else{
-        return this.medicine
+        return this.medDistance
       }
     }
   }
