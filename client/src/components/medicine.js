@@ -37,4 +37,20 @@ async function getData(query) {
   }
 }
 
-export {getData, getMedicineDetail}
+async function getSpecificMed(query) {
+  try {
+    const response = await axios.get(`http://localhost:5000/medicine/specific-product/`, {
+      params: {
+        query: query
+      }
+    });
+    const api = response.data.result;
+    //   this.medicine = api;
+    return api
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export {getData, getMedicineDetail, getSpecificMed}

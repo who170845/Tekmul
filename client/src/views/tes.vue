@@ -1,96 +1,433 @@
 <template>
-<!-- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="../../dist/output.css" rel="stylesheet" type="text/css">
-  <base href="/">
-</head> -->
-  <div class="bg-white">
-    <header class="absolute inset-x-0 top-0 z-50">
-      <nav class="flex items-center justify-between p-6 lg:px-8" aria-label="Global">
-        <div class="flex lg:flex-1">
-          <a href="#" class="-m-1.5 p-1.5">
-            <span class="sr-only">Your Company</span>
-            <img class="h-8 w-auto" src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600" alt="" />
-          </a>
+  <div>
+    <div>
+        <div class="button">
+          <button @click="getLocation()"> tentukan kordinat </button>
         </div>
-        <div class="flex lg:hidden">
-          <button type="button" class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700" @click="mobileMenuOpen = true">
-            <span class="sr-only">Open main menu</span>
-            <Bars3Icon class="h-6 w-6" aria-hidden="true" />
-          </button>
-        </div>
-        <div class="hidden lg:flex lg:gap-x-12">
-          <a v-for="item in navigation" :key="item.name" :href="item.href" class="text-sm font-semibold leading-6 text-gray-900">{{ item.name }}</a>
-        </div>
-        <div class="hidden lg:flex lg:flex-1 lg:justify-end">
-          <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
-        </div>
-      </nav>
-      <Dialog as="div" class="lg:hidden" @close="mobileMenuOpen = false" :open="mobileMenuOpen">
-        <div class="fixed inset-0 z-50" />
-        <DialogPanel class="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
-          <div class="flex items-center justify-between">
-            <a href="#" class="-m-1.5 p-1.5">
-              <span class="sr-only">Your Company</span>
-              <img class="h-8 w-auto" src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600" alt="" />
-            </a>
-            <button type="button" class="-m-2.5 rounded-md p-2.5 text-gray-700" @click="mobileMenuOpen = false">
-              <span class="sr-only">Close menu</span>
-              <XMarkIcon class="h-6 w-6" aria-hidden="true" />
-            </button>
-          </div>
-          <div class="mt-6 flow-root">
-            <div class="-my-6 divide-y divide-gray-500/10">
-              <div class="space-y-2 py-6">
-                <a v-for="item in navigation" :key="item.name" :href="item.href" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">{{ item.name }}</a>
-              </div>
-              <div class="py-6">
-                <a href="#" class="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">Log in</a>
-              </div>
-            </div>
-          </div>
-        </DialogPanel>
-      </Dialog>
-    </header>
+        <button @click="startRecognition" :disabled="isListening">
+        Start
+        </button> || 
+        <!-- <button @click="stopRecognition" :disabled="!isListening">
+          Stop
+        </button> <br> -->
+        <button @click="clear">
+          Clear
+        </button> || 
+        <button @click="stopRecognition">
+          Stop
+        </button>
+    </div>
+    <br>
+    <div>   
+      <textarea name="result" id="transc" cols="20" rows="10" disabled>{{ transcript }}</textarea> ~~
+      <textarea name="full" id="fulltransc" cols="20" rows="10" v-model="this.fullTransc">{{ this.fullTransc }}{{this.transcript}} </textarea>
+      <br>
 
-    <div class="relative isolate px-6 pt-14 lg:px-8">
-      <div class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80" aria-hidden="true">
-        <div class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]" style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)" />
-      </div>
-      <div class="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
-        <div class="hidden sm:mb-8 sm:flex sm:justify-center">
-          <div class="relative rounded-full px-3 py-1 text-sm leading-6 text-gray-600 ring-1 ring-gray-900/10 hover:ring-gray-900/20">
-            Announcing our next round of funding. <a href="#" class="font-semibold text-indigo-600"><span class="absolute inset-0" aria-hidden="true" />Read more <span aria-hidden="true">&rarr;</span></a>
-          </div>
+      <button @click="clearful">Clear</button> || 
+      <button @click="AddData"> Add transcript  </button>
+
+      <br>
+      
+    </div>
+    <div>
+      <textarea v-model="endTransc"></textarea>
+      <ul>
+        <li v-for="{text, id} in listTransc" :key="id">
+          <p>{{ text }}</p>
+          <button @click="deleteData(id)"> delete script </button> ||
+          <button @click="getMed(text)"> cek obat </button>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <label for="sort">sort by</label>
+      <select v-model="category" :disabled="medicine.length === 0">
+        <option value="" disabled hidden>Pilih</option>
+        <option value="byPrice"> Harga </option>
+        <option value="byName"> Nama </option>
+        <option value="byDistance"> Jarak </option>
+        <option value="byRating"> Rating </option>
+        <option value="bySold"> Terjual </option>
+        <option value="byStock"> Stock </option>
+      </select>
+
+      <select v-model="condition" v-if="category === 'byPrice'">
+        <option value="HighPrice">Paling tinggi</option>
+        <option value="LowPrice">Paling rendah</option>
+      </select>
+      <select v-model="condition" v-else-if="category === 'byName'">
+        <option value="FromA">Dari A</option>
+        <option value="FromZ">Dari Z</option>
+      </select>
+      <select v-model="condition" v-else-if="category === 'byDistance'">
+        <option value="Nearest">Paling dekat</option>
+        <option value="Furthest">Paling jauh</option>
+      </select>
+      <select v-model="condition" v-else-if="category === 'byRating'">
+        <option value="HighRating">Paling tinggi</option>
+        <option value="LowRating">Paling rendah</option>
+      </select>
+      <select v-model="condition" v-else-if="category === 'bySold'">
+        <option value="MostSold">Paling banyak</option>
+        <option value="LeastSold">Paling sedikit</option>
+      </select>
+      <select v-model="condition" v-else-if="category === 'byStock'">
+        <option value="MostStock">Paling banyak</option>
+        <option value="LeastStock">Paling sedikit</option>
+      </select>
+      <p>
+        category sekarang : {{this.category}}
+        condition sekarang : {{this.condition}}
+      </p>
+    </div>
+    
+    <div>
+      <div v-for="med in sortCat" :key="med.id" class="p-4 shadow-md border-gray-200 border-[1px]">
+        <p>{{ med.name }}</p>
+        <img :src="med.image_300" :alt="med.name" class="w-40 mx-auto" />
+        <img :src="med.drug_classification_icon" :alt="med.name">
+        <p> Jenis Obat : {{med.drug_classification_label}} </p>
+        <p> Harga {{med.price.display_amount}} </p>
+        <p> Stok : {{med.stock}} </p>
+        <p> Nama Apotek : {{med.nama_apotik}} </p>
+        <p> Jarak {{med.distance.toLocaleString()}} Kilometer </p>
+        <p>Rating : {{med.total_rated_amount}} </p>
+        <p> {{med.total_product_sold}} item</p> 
+        <button @click="MedSpec(med.id)"> tampilkan category </button>
+        <div class="category">
+          <ul v-if="med.ShowCat">
+            <li  v-for="cat in med.drugs_categories" :key="cat.id">
+              {{ cat.name }}
+            </li>
+          </ul>
         </div>
-        <div class="text-center">
-          <h1 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">Data to enrich your online business</h1>
-          <p class="mt-6 text-lg leading-8 text-gray-600">Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure qui lorem cupidatat commodo. Elit sunt amet fugiat veniam occaecat fugiat aliqua.</p>
-          <div class="mt-10 flex items-center justify-center gap-x-6">
-            <a href="#" class="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Get started</a>
-            <a href="#" class="text-sm font-semibold leading-6 text-gray-900">Learn more <span aria-hidden="true">→</span></a>
-          </div>
-        </div>
-      </div>
-      <div class="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]" aria-hidden="true">
-        <div class="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]" style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)" />
+        <!-- <button @click="MedSpec(med.drugs_categories)">Details</button> -->
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
-import { Dialog, DialogPanel } from '@headlessui/vue'
-import { Bars3Icon, XMarkIcon } from '@heroicons/vue/24/outline'
+<script>
 
-const navigation = [
-  { name: 'Product', href: '#' },
-  { name: 'Features', href: '#' },
-  { name: 'Marketplace', href: '#' },
-  { name: 'Company', href: '#' },
-]
+import { db,app } from "../stores/index.js"
+import {
+  getFirestore,
+  collection,
+  onSnapshot,
+  addDoc,
+  querySnapshot,
+  getDocs,
+  doc,
+  deleteDoc,
+  updateDoc
+} from "firebase/firestore";
+import {getData, getMedicineDetail, getSpecificMed} from "../components/medicine.js"
+import {runQuery} from "../components/keyword.js"
+import data from "../components/apotek.js"
+import {countDistance, getCoordinat} from "../components/location.js"
+//import { getDistance } from 'geolib';
 
-const mobileMenuOpen = ref(false)
+export default {
+  data() {
+    return {
+      isListening: false,
+      transcript: "",
+      currTransc: "",
+      fullTransc: "",
+      endTransc: "",
+      recognition: null,
+      listTransc: [],
+      medicine:"",
+      diagnoze: null,
+      savedDiagnoze: [],
+      medicine: [],
+      medloc: [],
+      medDistance: [],
+      SpecMed: [],
+      category: null,
+      latitude: null,
+      longitude: null,
+      distance: null,
+      condition: null
+    };  
+  },
+  methods: {
+    extractNumber(number){
+      const regex = /\((\d+)\)/; // Regex untuk mengekstrak angka di dalam tanda kurung
+      const match = number.match(regex);
+
+      if (match && match.length > 1) {
+        return match[1]; // Mengembalikan angka di dalam tanda kurung
+      }
+
+      return number;
+    },
+    async calculateDistance(latDest, longDest) {
+      try {
+        const dist = await countDistance(this.latitude, this.longitude, latDest, longDest);
+        console.log(dist);
+        return dist;
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    async getLocation(){
+      try{
+        const {latitude, longitude} = await getCoordinat()
+        //console.log(latitude, longitude)
+        this.latitude = latitude
+        this.longitude = longitude
+        console.log(this.latitude, this.longitude)
+      }
+      catch (error){
+        console.error(error)
+      }
+    },
+    async addLocation(){
+      try{
+        const med_loc = this.medicine.map(function(item, index){
+          return {
+            ...item, ...data[index % data.length]
+          }
+        })
+        console.log(med_loc)
+        this.medloc = med_loc
+      }
+      catch (error) {
+        console.error(error);
+      }
+    },
+    async addDistance(){
+      try {
+        const med_dist = await Promise.all(this.medloc.map(async (item) => {
+          const sold = parseInt(item.total_product_sold.split(" ")[1])
+          return {
+            ...item,
+            distance: await this.calculateDistance(item.latitude, item.longitude),
+            sold: sold
+          }
+        }))
+        this.medDistance = med_dist
+        console.log(med_dist)
+      }
+      catch(error) {
+        console.error(error)
+      }
+    },
+    async getMed(query){
+      try {
+        if (this.latitude != null && this.longitude != null){
+          console.log(query);
+          const result = await getSpecificMed(query);
+          console.log(result.data);
+          this.medicine = result.data;
+          this.addLocation(); // from medicine -> medloc
+          this.addDistance(); // from medloc -> medDistance
+        }
+        else{
+          window.alert("tentukan kordinat dulu dekkk!!")
+        }
+      }
+      catch (error) {
+        console.log("obat tidak tersedia");
+        //console.error(error);
+      }
+    },
+    MedSpec(query){
+      const med = this.medDistance.find((item) => item.id === query);
+      if(med){
+        med.ShowCat = !med.ShowCat
+      }
+    },
+    async AddData(){
+      try {
+        this.endTransc = this.fullTransc + this.currTransc;
+        const docVal = await addDoc(collection(db, "transkrip"),{
+          //isi : document.getElementById("transc"),
+          text : this.endTransc
+        });
+        const docUpd = doc(db, "transkrip", docVal.id);
+        await updateDoc(docUpd, {id: docVal.id});
+        console.log("script berhasil ditambahkan", docVal.id);
+      }
+      catch(err) {
+        console.log("script gagal ditambahkan", err);
+      }
+      this.loadData();
+    },
+    async loadData(){
+      try {
+        const querySnapshot = await getDocs(collection(db, "transkrip"));
+        this.listTransc = [];
+        querySnapshot.forEach((doc) =>{
+          console.log(doc.data());
+          this.listTransc.push(doc.data());
+        });
+        console.log("data berhasil dimuat");
+      }
+      catch(err){
+        console.log("data gagal dimuat", err);
+      }
+    },
+    async deleteData(id){
+      try {
+        await deleteDoc(doc (db, "transkrip", id));
+        console.log("id :", id, "berhasil dihapus");
+      }
+      catch(err) {
+        console.log("data gagal dihapus", err.massage)
+      }
+      this.loadData();
+    },
+    startRecognition() {
+      var textarea = document.getElementById("transc");
+      if (textarea.value.trim() != ""){
+        this.fullTransc += this.currTransc;
+      }
+      this.recognition.start();
+    },
+    clear(){
+      let textarea = this.transcript;
+      this.transcript = "";
+    },
+    clearful(){
+      this.fullTransc = "";
+    },
+    stopRecognition() {
+      this.recognition.stop();
+      this.isListening = false; // menandakan bahwa proses pengenalan suara sudah dihentikan
+    },
+  },
+  mounted() {
+    const speechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    this.recognition = new speechRecognition();
+    this.recognition.lang = "id-ID";
+    this.recognition.interimResults = true;
+    this.recognition.maxAlternatives = 1;
+
+    this.recognition.onstart = () => {
+      console.log("Text to Speech telah hidup");
+      this.isListening = true;
+    };
+
+    this.recognition.onresult = (event) => {
+      const resultIndex = event.resultIndex;
+      this.transcript = event.results[resultIndex][0].transcript;
+      //this.fullTransc += this.transcript + " ";
+      console.log(this.transcript);
+    };
+
+    this.recognition.onend = () => {
+    this.currTransc = this.transcript + " ";
+    console.log("Text to Speech telah mati");
+    // if (!this.isListening) {
+    //   // proses pengenalan suara sudah dihentikan secara manual
+    //   return;
+    // }
+    // this.recognition.start(); // memulai kembali proses pengenalan suara
+    this.isListening = false;
+  };
+    this.recognition.onerror = (event) => {
+      console.log("Error occurred in recognition: " + event.error);
+      this.isListening = false;
+    };
+
+    this.loadData();
+  },
+  computed: {
+    sortCat(){
+      if(this.category === "byPrice"){
+        if(this.condition === "HighPrice"){
+          return this.medDistance.sort((a, b) => b.price.amount - a.price.amount)
+        }
+        else if(this.condition === "LowPrice"){
+          return this.medDistance.sort((a, b) => a.price.amount - b.price.amount)
+        }
+        else{
+          return this.medDistance
+        }
+      }
+
+      else if(this.category === "byName"){
+        if(this.condition === "FromA"){
+          return this.medDistance.sort((a, b) => a.name.localeCompare(b.name));
+        }
+        else if(this.condition === "FromZ"){
+          return this.medDistance.sort((a, b) => b.name.localeCompare(a.name));
+        }
+        else{
+          return this.medDistance
+        }
+      }
+
+      else if(this.category === "byDistance"){
+        if(this.condition === "Nearest"){
+          return this.medDistance.sort((a,b) => a.distance - b.distance)
+        }
+        else if(this.condition === "Furthest"){
+          return this.medDistance.sort((a,b) => b.distance - a.distance)
+        }
+        else{
+          return this.medDistance
+        }
+      }
+
+      else if(this.category === "byRating") {
+        if(this.condition === "HighRating"){
+          return this.medDistance.sort((a, b) => {
+            const ratingA = this.extractNumber(a.total_rated_amount);
+            const ratingB = this.extractNumber(b.total_rated_amount);
+            //console.log(ratingB, ratingA)
+            if(ratingA === ratingB){
+              return b.sold - a.sold
+            }
+            return ratingB - ratingA;
+          });
+        }
+        else if(this.condition === "LowRating"){
+          return this.medDistance.sort((a, b) => {
+            const ratingA = this.extractNumber(a.total_rated_amount);
+            const ratingB = this.extractNumber(b.total_rated_amount);
+            //console.log(ratingB, ratingA)
+            if(ratingA === ratingB){
+              return a.sold - b.sold
+            }
+            return ratingA - ratingB;
+          });
+        }
+        else{
+          return this.medDistance
+        }
+      }
+
+      else if(this.category === "bySold"){
+        if(this.condition === "MostSold"){
+          return this.medDistance.sort((a,b) => b.sold - a.sold)
+        }
+        else if(this.condition === "LeastSold"){
+          return this.medDistance.sort((a,b) => a.sold - b.sold)
+        }
+        else{
+          return this.medDistance
+        }
+      }
+
+      else if(this.category === "byStock"){
+        if(this.condition === "MostStock"){
+          return this.medDistance.sort((a, b) => b.stock - a.stock)
+        }
+        else if(this.condition === "LeastStock"){
+          return this.medDistance.sort((a, b) => a.stock - b.stock)
+        }
+        else{
+          return this.medDistance
+        }
+      }
+
+      else{
+        return this.medDistance
+      }
+    }
+  }
+}
 </script>

@@ -4,7 +4,8 @@
     <router-link to="/about">About</router-link> |
     <router-link to="/main">Main</router-link> |
     <router-link to="/key">Keyword</router-link> |
-    <router-link to="/map">Map</router-link>
+    <router-link to="/map">Map</router-link> |
+    <router-link to="/tes">Tes</router-link>
     
   </nav>
   <router-view/>
